@@ -1,0 +1,13 @@
+{
+    "all-wholesalers":[
+        "abc.com",
+        "asd.com"
+    ],
+    "all-manufacturers":[
+        "az.com",
+        "gene.com"
+    ],
+    "hazdrug-suppliers":[
+        "xyz.com"
+    ]
+}
