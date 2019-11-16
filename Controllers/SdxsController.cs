@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Dynamic;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -60,27 +62,32 @@ namespace sdxs.Controllers
         }
 
         [HttpPost("msin")]
-        public void InboundMsg([FromBody] string msg)
+        public void InboundMsg([FromBody] dynamic obj)
         {
+            string msg = obj.msg;
+
             if (GuardMsg(msg)) return;
             if (GuardEphemeral()) return;
             if (GuardApiKey()) return;
             if (GuardDomain(checkWhitelist:true)) return;
 
             dynamic m = new ExpandoObject();
-            m.from = HttpContext.Request.Headers["Host"];
+            m.action = HttpContext.Request.Headers[SDXS_GLOBALS.C_SDXS_HDRKEY_ACTION];
+            m.format = HttpContext.Request.ContentType;
+            m.from = HttpContext.Request.Host;
+            m.to = HttpContext.Request.Headers[SDXS_GLOBALS.C_SDXS_HDRKEY_DOMAIN];
             m.msg = msg;
-            
-            File.WriteAllText($"Messages/{DateTime.UtcNow.Ticks}.json", JsonConvert.SerializeObject(m));
+
+            System.IO.File.WriteAllText($"Messages/in/{DateTime.UtcNow.Ticks}.json", JsonConvert.SerializeObject(m));
 
             SetResponseAccepted();
             return; 
         }
 
         [HttpPost("msbr")]
-        public void BroadcastMsg([FromBody] string msg)
+        public void BroadcastMsg([FromBody] dynamic msg)
         {
-            if (GuardMsg(msg)) return;
+            //if (GuardMsg(msg)) return;
             if (GuardAction()) return;
 
             //validate msg
